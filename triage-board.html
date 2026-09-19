@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Issue Triage Board</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --panel-alt: #1e293b;
+        --border: #334155;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+        --accent-strong: #2563eb;
+        --warning: #f59e0b;
+        --danger: #f97316;
+        --success: #22c55e;
+        --shadow: rgba(15, 23, 42, 0.35);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #020817 0%, #0f172a 100%);
+        color: var(--text);
+      }
+
+      .app {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .pill {
+        background: rgba(96, 165, 250, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.5);
+        color: #bfdbfe;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .lane {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 15px 30px var(--shadow);
+      }
+
+      .lane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .lane-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .count {
+        min-width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.15);
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+
+      .top .count {
+        background: rgba(249, 115, 22, 0.15);
+        color: #fed7aa;
+      }
+
+      .cards {
+        display: grid;
+        gap: 16px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, rgba(30,41,59,0.95), rgba(15,23,42,1));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+      }
+
+      .top-card {
+        border-color: rgba(249, 115, 22, 0.8);
+        box-shadow: 0 8px 18px rgba(249, 115, 22, 0.12);
+      }
+
+      .issue-header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .issue-number {
+        color: var(--muted);
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .issue-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.3;
+      }
+
+      .issue-body {
+        margin: 0 0 12px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .justification {
+        margin: 0 0 16px;
+        padding: 10px 12px;
+        background: rgba(59,130,246,0.08);
+        border: 1px solid rgba(96, 165, 250, 0.3);
+        border-radius: 12px;
+        font-size: 0.92rem;
+        color: #dbeafe;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button,
+      a.button {
+        appearance: none;
+        border: none;
+        border-radius: 10px;
+        background: var(--accent-strong);
+        color: white;
+        padding: 9px 12px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease, filter 0.15s ease;
+      }
+
+      button:hover,
+      a.button:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+
+      button.secondary {
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+
+      .current-context {
+        margin-top: 22px;
+        background: rgba(15, 23, 42, 0.82);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+      }
+
+      .context-title {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      #contextList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      #contextList li {
+        background: rgba(15, 118, 110, 0.08);
+        border: 1px solid rgba(45, 212, 191, 0.25);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: #ccfbf1;
+      }
+
+      .empty-state {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      @media (max-width: 900px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <h1>Issue Triage Board</h1>
+        <div class="pill">Open backlog</div>
+      </header>
+
+      <main class="board">
+        <section class="lane top">
+          <div class="lane-header">
+            <h2 class="lane-title">Highest priority</h2>
+            <span class="count">3</span>
+          </div>
+          <div class="cards">
+            <article class="card top-card" data-issue-number="1" data-issue-title="Add a search box to find games by title" data-issue-url="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/1" data-issue-summary="Players who already know what they're looking for shouldn't have to scan the whole catalog. Adding a simple search box on the game list page lets users quickly narrow the list by title, improving discoverability alongside the planned category and publisher filters.">
+              <div class="issue-header">
+                <div>
+                  <div class="issue-number">Issue #1</div>
+                  <h3 class="issue-title">Add a search box to find games by title</h3>
+                </div>
+              </div>
+              <p class="issue-body">Adds a title-based search input to the catalog so players can narrow results quickly without scanning the whole list.</p>
+              <p class="justification">This is near the top because it is a core discovery flow that directly affects how easily users can find games in a growing catalog, and it sits directly in the main browsing path.</p>
+              <div class="actions">
+                <button type="button" class="context-button">Add to current context</button>
+                <a class="button secondary" href="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/1" target="_blank" rel="noreferrer">Open issue</a>
+              </div>
+            </article>
+
+            <article class="card top-card" data-issue-number="2" data-issue-title="Allow users to sort the game list" data-issue-url="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/2" data-issue-summary="Different players browse in different ways, so adding sorting by title and star rating gives users more control over how they explore the catalog.">
+              <div class="issue-header">
+                <div>
+                  <div class="issue-number">Issue #2</div>
+                  <h3 class="issue-title">Allow users to sort the game list</h3>
+                </div>
+              </div>
+              <p class="issue-body">Adds sort controls for alphabetical and rating-based views to improve browsing flexibility once the catalog grows.</p>
+              <p class="justification">This is a high-urgency UX improvement because it directly affects browse behavior and helps the catalog feel more usable without changing the underlying data model.</p>
+              <div class="actions">
+                <button type="button" class="context-button">Add to current context</button>
+                <a class="button secondary" href="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/2" target="_blank" rel="noreferrer">Open issue</a>
+              </div>
+            </article>
+
+            <article class="card top-card" data-issue-number="6" data-issue-title="Implement pagination on the game list page" data-issue-url="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/6" data-issue-summary="As the catalog grows, loading the entire list on one page hurts performance and makes browsing harder. Pagination keeps the page quick and manageable.">
+              <div class="issue-header">
+                <div>
+                  <div class="issue-number">Issue #6</div>
+                  <h3 class="issue-title">Implement pagination on the game list page</h3>
+                </div>
+              </div>
+              <p class="issue-body">Adds page/limit support and pagination controls so the catalog remains responsive as more games are added.</p>
+              <p class="justification">This is a likely near-term priority because it addresses scale and performance directly, and it is the kind of issue that becomes more painful as the catalog grows.</p>
+              <div class="actions">
+                <button type="button" class="context-button">Add to current context</button>
+                <a class="button secondary" href="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/6" target="_blank" rel="noreferrer">Open issue</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="lane next">
+          <div class="lane-header">
+            <h2 class="lane-title">Further backlog</h2>
+            <span class="count">3</span>
+          </div>
+          <div class="cards">
+            <article class="card" data-issue-number="3" data-issue-title="Show category and publisher descriptions on the game detail page" data-issue-url="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/3" data-issue-summary="The categories and publishers tables already include descriptions but the detail page only shows names, so this adds useful context without schema changes.">
+              <div class="issue-header">
+                <div>
+                  <div class="issue-number">Issue #3</div>
+                  <h3 class="issue-title">Show category and publisher descriptions on the game detail page</h3>
+                </div>
+              </div>
+              <p class="issue-body">Surfaces category and publisher descriptions on the detail page and gracefully hides missing content.</p>
+              <div class="actions">
+                <button type="button" class="context-button">Add to current context</button>
+                <a class="button secondary" href="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/3" target="_blank" rel="noreferrer">Open issue</a>
+              </div>
+            </article>
+
+            <article class="card" data-issue-number="4" data-issue-title="Add a publisher page listing that publisher's games" data-issue-url="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/4" data-issue-summary="A dedicated publisher page helps backers explore a developer's catalog and strengthens navigation between related games.">
+              <div class="issue-header">
+                <div>
+                  <div class="issue-number">Issue #4</div>
+                  <h3 class="issue-title">Add a publisher page listing that publisher's games</h3>
+                </div>
+              </div>
+              <p class="issue-body">Creates a prerendered publisher detail page and links from game cards to related titles from the same publisher.</p>
+              <div class="actions">
+                <button type="button" class="context-button">Add to current context</button>
+                <a class="button secondary" href="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/4" target="_blank" rel="noreferrer">Open issue</a>
+              </div>
+            </article>
+
+            <article class="card" data-issue-number="5" data-issue-title="Show a catalog summary on the home page" data-issue-url="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/5" data-issue-summary="A landing-page summary adds useful at-a-glance context about catalog size and average rating without changing the underlying data model.">
+              <div class="issue-header">
+                <div>
+                  <div class="issue-number">Issue #5</div>
+                  <h3 class="issue-title">Show a catalog summary on the home page</h3>
+                </div>
+              </div>
+              <p class="issue-body">Displays total games and average star rating on the homepage, with graceful handling for empty or unrated catalogs.</p>
+              <div class="actions">
+                <button type="button" class="context-button">Add to current context</button>
+                <a class="button secondary" href="https://github.com/MrHKaster/GitHub-Tailspin-Toys/issues/5" target="_blank" rel="noreferrer">Open issue</a>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <aside class="current-context">
+        <h2 class="context-title">Current session context</h2>
+        <ul id="contextList">
+          <li class="empty-state">No issues added yet.</li>
+        </ul>
+      </aside>
+    </div>
+
+    <script>
+      const contextList = document.getElementById('contextList');
+      const defaultState = '<li class="empty-state">No issues added yet.</li>';
+
+      function renderContext(items) {
+        if (!items.length) {
+          contextList.innerHTML = defaultState;
+          return;
+        }
+
+        contextList.innerHTML = items
+          .map(item => `
+            <li>
+              <strong>${item.title}</strong><br />
+              <span>${item.url}</span>
+            </li>
+          `)
+          .join('');
+      }
+
+      const selected = [];
+      document.querySelectorAll('.context-button').forEach((button) => {
+        button.addEventListener('click', () => {
+          const card = button.closest('.card');
+          const issue = {
+            title: card.dataset.issueTitle,
+            url: card.dataset.issueUrl,
+          };
+
+          if (!selected.some(item => item.url === issue.url)) {
+            selected.push(issue);
+          }
+
+          renderContext(selected);
+          button.textContent = 'Added to current context';
+          button.disabled = true;
+          button.style.opacity = '0.8';
+
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(`${issue.title}\n${issue.url}`).catch(() => {});
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
