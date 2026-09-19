@@ -114,6 +114,34 @@ There is no Svelte/React layer. When a page genuinely needs client behaviour, ad
 - Run `npx astro sync` to (re)generate route/content types before linting or type-checking
 - `.astro` files are type-checked by `npm run typecheck:astro` (which runs `astro sync` then `astro check`), on the classic `typescript` package. The pure TypeScript in `db/`, `src/lib/`, and `src/types/` is type-checked separately by `npm run typecheck` (the native TS 7 compiler, `tsgo`), which does **not** process `.astro` files.
 
+## Commenting & Component Contracts
+
+### Commenting philosophy
+
+- Comment the intent, reasoning, and trade-offs behind a decision — not the mechanics of the code that is already obvious from the function or markup.
+- Prefer a brief explanation for why a value, branch, or workaround exists over a sentence that simply mirrors the code.
+- Delete or rewrite comments that restate conditions, variable names, or obvious structure. Outdated comments are treated as bugs and should be updated in the same change that touches the code.
+- Use comments to explain non-obvious constraints, edge cases, and business intent that would otherwise be difficult for a contributor to infer.
+
+### Props documentation
+
+Every reusable Astro component should document its `Props` interface in the frontmatter so the API is self-explanatory:
+
+```astro
+---
+interface Props {
+  title: string;
+  playable: boolean;
+}
+
+const { title, playable } = Astro.props;
+---
+```
+
+- Name the interface `Props` and keep each property explicit and typed.
+- Add a short comment only when the contract is non-obvious, such as a special default or an edge-case behavior.
+- Document prop semantics in the same file so consumers and tests can understand the component API without reading its entire implementation.
+
 ## Best Practices
 
 - Keep data fetching in frontmatter (build time); avoid client-side fetching

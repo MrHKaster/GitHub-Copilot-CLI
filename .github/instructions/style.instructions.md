@@ -40,6 +40,22 @@ ALL UI components MUST use dark theme colors:
 - Mobile-first approach
 - Ensure readability on all screen sizes
 
+## Commenting & Documentation Standards
+
+This project follows a single comment philosophy: explain intent, constraints, and non-obvious decisions, not the code mechanics that are already visible in the surrounding lines.
+
+- Prefer comments that answer "why" the code exists, why a workaround was chosen, or which business rule is encoded.
+- Avoid comments that merely repeat the code in prose, such as "check if game is valid" when the code already says `if (!game) { ... }`.
+- Keep comments current. If the code changes, update or remove the related comment in the same patch.
+- When a rule or contract is subtle, document it in the nearest function or component definition instead of scattering notes across the file.
+
+## TypeScript formatting & conventions
+
+- Prefer explicit TypeScript types for function parameters and return values, especially in `db/**/*.ts` and `src/lib/*.ts`.
+- Use `interface Props` for reusable Astro component props and keep each property typed and named clearly.
+- Keep formatting consistent and readable: trailing commas in multiline objects, spaces around type operators, and line wrapping that keeps the code easy to scan.
+- Prefer the project ESLint rules for unused variables and TypeScript safety; if a rule is enforceable in ESLint, use it rather than relying on contributors to remember it manually.
+
 ## Utility Classes
 
 - Prefer utility classes over custom CSS when possible
