@@ -59,6 +59,28 @@ export async function getAllGameIds(db: Database): Promise<number[]> {
 
 Seed-derived values must be reproducible across builds. Derive star ratings from a stable hash of the title (`ratingFromTitle`) — **never** `Math.random()`.
 
+## Public API documentation
+
+Every exported function in `db/**/*.ts` and `src/lib/*.ts` should include a TSDoc/JSDoc block that describes the purpose, parameters, and return value. This is part of the contract for contributors and test authors and keeps the injectable-db pattern clear.
+
+```ts
+/**
+ * Returns all game ids in a stable, title-sorted order for static route generation.
+ *
+ * @param db - The Drizzle database instance to query.
+ * @returns A list of game ids sorted by title for deterministic builds.
+ */
+export async function getAllGameIds(db: Database): Promise<number[]> {
+  const rows = await db.select({ id: games.id }).from(games).orderBy(asc(games.title));
+  return rows.map((row) => row.id);
+}
+```
+
+- Document exported functions, not every local helper.
+- Always describe the `db` parameter when a helper accepts the injected database client.
+- Explain the return value in concrete terms, especially when ordering, filtering, or mapping is part of the contract.
+- If a function is a pure transform, document the input and output shape so the deterministic behavior is obvious.
+
 ## Testing
 
 Unit-test transforms directly and helpers against `createTestDatabase()`. See [`unit-tests.instructions.md`](unit-tests.instructions.md).
